@@ -34,10 +34,14 @@ def_bucket = config.get("DEFAULTS", "s3_bucket", raw=True)
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", help="Upload the FILE to AWS S3", metavar="FILE")
+parser.add_option("-c", "--create-bucket", dest="new_bucket", help="Creates a bucket, if it doesn't exist", metavar="BUCKET_NAME")
 (options, args) = parser.parse_args()
 
 conn = boto.connect_s3(id,key)
-bucket = conn.lookup(def_bucket)
+if options.new_bucket:
+  bucket = conn.create_bucket(options.new_bucket)
+else:  
+  bucket = conn.lookup(def_bucket)
 k = Key(bucket)
 file_list = glob.glob(options.filename)
 for file_name in file_list:
