@@ -36,6 +36,7 @@ def_bucket = config.get("DEFAULTS", "s3_bucket", raw=True)
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", help="Upload the FILE to AWS S3", metavar="FILE")
+parser.add_option("-d", "--directory", dest="dir_name", help="Define a directory structure with a trailing /", metavar="DIRECTORY_NAME")
 parser.add_option("-c", "--create-bucket", dest="new_bucket", help="Creates a bucket, if it doesn't exist", metavar="BUCKET_NAME")
 parser.add_option("-e", "--expiration", dest="life", help="Expiration in number of days", metavar="LIFE", type="int")
 (options, args) = parser.parse_args()
@@ -52,9 +53,12 @@ if options.new_bucket:
 else:  
   bucket = conn.lookup(def_bucket)
 
+if type(options.dir_name) is NoneType:
+  options.dir_name = ''
+  
 k = Key(bucket)
 file_list = glob.glob(options.filename)
 for file_name in file_list:
-    k.key = file_name.split('/')[-1]
+    k.key = options.dir_name + file_name.split('/')[-1]
     k.set_contents_from_filename(file_name)
     print file_name+' uploaded'
