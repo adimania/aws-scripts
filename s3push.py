@@ -1,10 +1,10 @@
-
 #!/usr/bin/env python
 	
 # author: Aditya Patawari <aditya@adityapatawari.com>
 
 import boto
 import ConfigParser
+import sys
 from optparse import OptionParser
 import os.path
 from boto.s3.key import Key
