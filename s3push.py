@@ -11,6 +11,7 @@ from boto.s3.key import Key
 from boto.s3.lifecycle import Lifecycle
 import glob
 from types import NoneType
+import datetime
 
 __author__ = "Aditya Patawari <aditya@adityapatawari.com>"
 
@@ -45,17 +46,22 @@ parser.add_option("-l", "--list", dest="list_bucket", help="List the contents of
 conn = boto.connect_s3(id,key)
 if options.new_bucket:
   bucket = conn.lookup(options.new_bucket)
+
   if type(bucket) is NoneType:
     bucket = conn.create_bucket(options.new_bucket)
+
     if options.life:
       life=Lifecycle()
       life.add_rule('s3push_expiration_rule','','Enabled',options.life)
       bucket.configure_lifecycle(life)
+
 elif options.list_bucket:
   bucket = conn.lookup(options.list_bucket)
   for key in bucket:
-    print key.name
+    last_modified = datetime.datetime.strptime(key.last_modified,'%Y-%m-%dT%H:%M:%S.000Z')
+    print key.name.ljust(70) + '\t' + last_modified.strftime("%d %B %Y, %I:%M%p").ljust(24) + '\t' + str(key.size/1024) + 'KB'
   sys.exit(0)  
+
 else:
   bucket = conn.lookup(def_bucket)
 
