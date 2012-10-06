@@ -11,6 +11,7 @@ from boto.s3.key import Key
 from boto.s3.lifecycle import Lifecycle
 import glob
 from types import NoneType
+import datetime
 
 __author__ = "Aditya Patawari <aditya@adityapatawari.com>"
 
@@ -39,18 +40,29 @@ parser.add_option("-f", "--file", dest="filename", help="Upload the FILE to AWS 
 parser.add_option("-d", "--directory", dest="dir_name", help="Define a directory structure with a trailing /", metavar="DIRECTORY_NAME")
 parser.add_option("-c", "--create-bucket", dest="new_bucket", help="Creates a bucket, if it doesn't exist", metavar="BUCKET_NAME")
 parser.add_option("-e", "--expiration", dest="life", help="Expiration in number of days", metavar="LIFE", type="int")
+parser.add_option("-l", "--list", dest="list_bucket", help="List the contents of the bucket", metavar="LIST")
 (options, args) = parser.parse_args()
 
 conn = boto.connect_s3(id,key)
 if options.new_bucket:
   bucket = conn.lookup(options.new_bucket)
+
   if type(bucket) is NoneType:
     bucket = conn.create_bucket(options.new_bucket)
+
     if options.life:
       life=Lifecycle()
       life.add_rule('s3push_expiration_rule','','Enabled',options.life)
       bucket.configure_lifecycle(life)
-else:  
+
+elif options.list_bucket:
+  bucket = conn.lookup(options.list_bucket)
+  for key in bucket:
+    last_modified = datetime.datetime.strptime(key.last_modified,'%Y-%m-%dT%H:%M:%S.000Z')
+    print key.name.ljust(70) + '\t' + last_modified.strftime("%d %B %Y, %I:%M%p").ljust(24) + '\t' + str(key.size/1024) + 'KB'
+  sys.exit(0)  
+
+else:
   bucket = conn.lookup(def_bucket)
 
 if type(options.dir_name) is NoneType:
