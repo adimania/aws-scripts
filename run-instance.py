@@ -8,7 +8,7 @@ from optparse import OptionParser
 
 check = os.path.isfile(os.path.expanduser('~/.aws.conf'))
 if cmp(check,False) == 0:
-    print Description
+    print "~/.aws.conf is missing"
 config = ConfigParser.ConfigParser()
 config.read(os.path.expanduser('~/.aws.conf'))
 id = config.get("AWS", "consumer_key", raw=True)

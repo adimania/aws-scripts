@@ -8,7 +8,7 @@ from optparse import OptionParser
 
 check = os.path.isfile(os.path.expanduser('~/.aws.conf'))
 if cmp(check,False) == 0:
-    print Description
+    print "~/.aws.conf is missing"
     sys.exit(2)
 system_execution = 0
 config = ConfigParser.ConfigParser()
