@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import boto
 import boto.ec2
 import ConfigParser
