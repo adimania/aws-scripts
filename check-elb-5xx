@@ -1,0 +1,37 @@
+import boto.ec2.cloudwatch
+import datetime
+from optparse import OptionParser
+import ConfigParser
+import sys
+import os
+
+config = ConfigParser.ConfigParser()
+config.read(os.path.expanduser('~/.aws.conf'))
+id = config.get("AWS", "consumer_key", raw=True)
+key = config.get("AWS", "consumer_secret", raw=True)
+
+parser = OptionParser()
+parser.add_option("-r", "--region", dest="region", help="Region to be connected", metavar="REGION_NAME")
+parser.add_option("-l", "--elb", dest="elb", help="elb name from cloudwatch", metavar="ELB_NAME")
+parser.add_option("-i", "--interval", dest="interval", help="time intercal in minutes", metavar="ELB_NAME")
+parser.add_option("-c", "--critical", dest="critical", help="The critical threshold in number", metavar="CRITICAL")
+parser.add_option("-w", "--warning", dest="warning", help="The warning threshold in number", metavar="WARNING")
+(options, args) = parser.parse_args()
+
+cw_obj = boto.ec2.cloudwatch.connect_to_region(options.region,aws_access_key_id=id,aws_secret_access_key=key)
+
+data = cw_obj.get_metric_statistics(start_time=datetime.datetime.now()-datetime.timedelta(minutes=int(options.interval)), end_time=datetime.datetime.now(), metric_name="HTTPCode_Backend_5XX", namespace="AWS/ELB", statistics=["Sum"], period=60, dimensions={"LoadBalancerName":options.elb})
+
+elb_5xx = 0
+for d in data:
+  elb_5xx = elb_5xx + d['Sum']
+
+print "Number of 5xx served by %s: %d" % (options.elb, elb_5xx)
+if elb_5xx > int(options.critical):
+  sys.exit(2)
+elif elb_5xx > int(options.warning):
+  sys.exit(1)
+elif elb_5xx < int(options.warning):
+  sys.exit(0)
+else:
+  sys.exit(3)
